@@ -29,7 +29,7 @@ final class Router
         extract($parsedParams);
 
         if (empty($parsedURL[0])) {
-            $this->reroute('home');
+            array_unshift($parsedURL,"default");
         }
 
         $controllerName = $this->dashToCamel(array_shift($parsedURL));

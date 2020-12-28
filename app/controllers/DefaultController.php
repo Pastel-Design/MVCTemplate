@@ -3,11 +3,11 @@
 namespace app\controllers;
 
 /**
- * Controller HomeController
+ * Controller DefaultController
  *
  * @package app\controllers
  */
-class HomeController extends Controller
+class DefaultController extends Controller
 {
     public function __construct()
     {
