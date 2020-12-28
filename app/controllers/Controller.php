@@ -2,7 +2,6 @@
 
 namespace app\controllers;
 
-use app\models\CategoryManager;
 use Latte\Engine;
 use Transliterator;
 
