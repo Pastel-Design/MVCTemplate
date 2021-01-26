@@ -4,7 +4,10 @@ namespace app\router;
 
 require(__DIR__ . "/../../vendor/autoload.php");
 
+use app\config\DbConfig;
 use App\controllers\Controller;
+use app\models\DbManager;
+use PDOException;
 
 /**
  * Router
@@ -29,9 +32,15 @@ final class Router
         extract($parsedParams);
 
         if (empty($parsedURL[0])) {
-            array_unshift($parsedURL,"default");
+            array_unshift($parsedURL, "default");
         }
-
+        try {
+            DbManager::connect(DbConfig::$host, DbConfig::$username, DbConfig::$pass, DbConfig::$database);
+        } catch (PDOException $exception) {
+            if ($parsedURL[0] != "error") {
+                $this->reroute("error/500");
+            }
+        }
         $controllerName = $this->dashToCamel(array_shift($parsedURL));
         $controllerClass = $controllerName . 'Controller';
 
@@ -67,12 +76,7 @@ final class Router
         }
         $return["parsedGET"] = array();
         if (isset($url["query"])) {
-            $parsedGET = explode(";", $url["query"]);
-
-            foreach ($parsedGET as $get) {
-                $get = explode("=", $get);
-                $return["parsedGET"][$get[0]] = $get[1];
-            }
+            parse_str($url["query"],$return["parsedGET"]);
         }
         return $return;
     }

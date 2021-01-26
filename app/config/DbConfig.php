@@ -12,4 +12,5 @@ class DbConfig
     public static string $username = 'root';
     public static string $pass = '';
     public static string $database = 'mydb';
+    public static string $enviroment = "dev";
 }

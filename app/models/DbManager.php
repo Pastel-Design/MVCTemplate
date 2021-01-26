@@ -2,6 +2,7 @@
 
 namespace app\models;
 
+use app\config\DbConfig;
 use app\router\Router;
 use PDO;
 use PDOException as PDOException;
@@ -46,21 +47,25 @@ class DbManager
     }
 
     /**
-     * Request single row from databse
+     * Request single row from database
      *
      * @param string $sql
      * @param array  $params
      *
      * @return array|void
+     * @throws PDOException
      */
     public static function requestSingle(string $sql, $params = array())
     {
         try {
+            self::$connection->beginTransaction();
             $result = self::$connection->prepare($sql);
             $result->execute($params);
+            self::$connection->commit();
             return $result->fetch(PDO::FETCH_ASSOC);
-        } catch (PDOException $excepiton) {
-            Router::reroute("error/500");
+        } catch (PDOException $exception) {
+            self::$connection->rollback();
+            throw $exception;
         }
     }
 
@@ -73,16 +78,20 @@ class DbManager
      *
      * @return object|void
      */
-    public static function requestSingleClass(string $sql, string $class, $params = array())
+    public
+    static function requestSingleClass(string $sql, string $class, $params = array())
     {
         $class = "\\app\\classes\\" . $class . "Class";
         try {
+            self::$connection->beginTransaction();
             $result = self::$connection->prepare($sql);
             $result->execute($params);
+            self::$connection->commit();
             $result->setFetchMode(PDO::FETCH_CLASS, $class);
             return $result->fetch();
-        } catch (PDOException $excepiton) {
-            Router::reroute("error/500");
+        } catch (PDOException $exception) {
+            self::$connection->rollback();
+            throw $exception;
         }
     }
 
@@ -94,14 +103,18 @@ class DbManager
      *
      * @return array|void
      */
-    public static function requestSingleWOAssoc(string $sql, $params = array())
+    public
+    static function requestSingleWOAssoc(string $sql, $params = array())
     {
         try {
+            self::$connection->beginTransaction();
             $result = self::$connection->prepare($sql);
             $result->execute($params);
+            self::$connection->commit();
             return $result->fetch();
-        } catch (PDOException $excepiton) {
-            Router::reroute("error/500");
+        } catch (PDOException $exception) {
+            self::$connection->rollback();
+            throw $exception;
         }
     }
 
@@ -113,14 +126,18 @@ class DbManager
      *
      * @return array|void
      */
-    public static function requestMultiple(string $sql, $params = array())
+    public
+    static function requestMultiple(string $sql, $params = array())
     {
         try {
+            self::$connection->beginTransaction();
             $result = self::$connection->prepare($sql);
             $result->execute($params);
+            self::$connection->commit();
             return $result->fetchAll(PDO::FETCH_ASSOC);
-        } catch (PDOException $excepiton) {
-            Router::reroute("error/500");
+        } catch (PDOException $exception) {
+            self::$connection->rollback();
+            throw $exception;
         }
     }
 
@@ -132,13 +149,15 @@ class DbManager
      *
      * @return mixed|void
      */
-    public static function requestUnit(string $sql, $params = array())
+    public
+    static function requestUnit(string $sql, $params = array())
     {
         try {
             $result = self::requestSingleWOAssoc($sql, $params);
             return ($result == null ? null : $result[0]);
-        } catch (PDOException $excepiton) {
-            Router::reroute("error/500");
+        } catch (PDOException $exception) {
+            self::$connection->rollback();
+            throw $exception;
         }
     }
 
@@ -150,15 +169,16 @@ class DbManager
      *
      * @return boolean
      */
-    public static function requestInsert(string $sql, $params = array())
+    public
+    static function requestInsert(string $sql, $params = array())
     {
         try {
             self::$connection->beginTransaction();
             $result = self::$connection->prepare($sql);
+            $return = $result->execute($params);
             self::$connection->commit();
-            return $result->execute($params);
-        } catch (PDOException $excepiton) {
-            var_dump($excepiton);
+            return $return;
+        } catch (PDOException $exception) {
             self::$connection->rollback();
             return false;
         }
@@ -173,7 +193,8 @@ class DbManager
      *
      * @return int|false
      */
-    public static function requestAffect(string $sql, $params = array())
+    public
+    static function requestAffect(string $sql, $params = array())
     {
         try {
             self::$connection->beginTransaction();
@@ -181,8 +202,7 @@ class DbManager
             $result->execute($params);
             self::$connection->commit();
             return $result->rowCount();
-        } catch (PDOException $excepiton) {
-            var_dump($excepiton);
+        } catch (PDOException $exception) {
             self::$connection->rollback();
             return false;
         }

@@ -2,10 +2,12 @@
 
 namespace app\models;
 
-require("../vendor/autoload.php");
+("../vendor/autoload.php");
 
 use app\config\ImageOptimizerConfig;
 use Intervention\Image\ImageManagerStatic as Image;
+use Intervention\Image\Exception\NotWritableException;
+use RuntimeException;
 
 
 /**
@@ -21,34 +23,15 @@ class ImageManager
      *
      * @param string $imgURL
      *
-     * @return void
+     * @return RuntimeException|void
      */
-    static function defaultImage(string $imgURL): void
+    static function defaultImage(string $imgURL)
     {
-        $img = Image::make($imgURL);
-
-        $height = $img->height();
-        $width = $img->width();
-        //na šířku
-        if ($width > $height) {
-            if ($width > ImageOptimizerConfig::$defaultImageWidth) {
-                $img->resize(ImageOptimizerConfig::$defaultImageWidth, null, function ($constraint) {
-                    $constraint->aspectRatio();
-                });
-            } else {
-                $img->save($imgURL);
-            }
-        } //na výšku
-        else {
-            if ($height > ImageOptimizerConfig::$defaultImageHeight) {
-                $img->resize(null, ImageOptimizerConfig::$defaultImageHeight, function ($constraint) {
-                    $constraint->aspectRatio();
-                });
-            } else {
-                $img->save($imgURL);
-            }
+        try {
+            self::editImage($imgURL,$imgURL,ImageOptimizerConfig::$defaultImageWidth,ImageOptimizerConfig::$defaultImageHeight);
+        } catch (NotWritableException $exception) {
+            return new RuntimeException;
         }
-        $img->save($imgURL);
     }
 
     /**
@@ -56,34 +39,51 @@ class ImageManager
      *
      * @param string $imgURL
      *
-     * @return void
+     * @return RuntimeException|void
      */
-    static function makeThumbnail(string $imgURL): void
+    static function makeThumbnail(string $imgURL)
     {
-        $img = Image::make($imgURL);
-        $imgName = array_reverse(explode("/", $imgURL))[0];
+        $newURL = "images/thumbnail/" . array_reverse(explode("/", $imgURL))[0];
+        $oldURL = $imgURL;
+        try {
+            self::editImage($newURL,$oldURL,ImageOptimizerConfig::$thumbnailWidth,ImageOptimizerConfig::$thumbnailHeight);
+        } catch (NotWritableException $exception) {
+            return new RuntimeException;
+        }
+    }
+
+    /**
+     * @param $newURL
+     * @param $oldURL
+     * @param $targetWidth
+     * @param $targetHeight
+     */
+    static function editImage($newURL,$oldURL,$targetWidth,$targetHeight)
+    {
+        $img = Image::make($oldURL);
 
         $height = $img->height();
         $width = $img->width();
         //na šířku
         if ($width > $height) {
-            if ($width > ImageOptimizerConfig::$thumbnailWidth) {
-                $img->resize(ImageOptimizerConfig::$thumbnailWidth, null, function ($constraint) {
+            if ($width > $targetWidth) {
+                $img->resize($targetWidth, null, function ($constraint) {
                     $constraint->aspectRatio();
                 });
             } else {
-                $img->save("images/thumbnails/" . $imgName);
-            }
-        } //na výšku
-        else {
-            if ($height > ImageOptimizerConfig::$thumbnailHeight) {
-                $img->resize(null, ImageOptimizerConfig::$thumbnailHeight, function ($constraint) {
-                    $constraint->aspectRatio();
-                });
-            } else {
-                $img->save("images/thumbnails/" . $imgName);
+                $img->save($newURL);
             }
         }
-        $img->save("images/thumbnails/" . $imgName);
+        //na výšku
+        else {
+            if ($height > $targetHeight) {
+                $img->resize(null, $targetHeight, function ($constraint) {
+                    $constraint->aspectRatio();
+                });
+            } else {
+                $img->save($newURL);
+            }
+        }
+        $img->save($newURL);
     }
 }

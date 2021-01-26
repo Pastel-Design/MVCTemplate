@@ -2,15 +2,17 @@
 <html lang="cs-cz">
 
 <head>
-    <base href="/DatabaseLayer"/>
+    <base href="/MVCTemplate"/>
     <meta charset="UTF-8"/>
     <title>
-        Template
+        {ifset $page_title}{$page_title}{else}Default title{/ifset}
     </title>
-    <meta name="page_description" content=""/>
-    <meta name="keywords" content=""/>
+    <meta name="page_description" content="{ifset $page_description}{$page_description}{/ifset}"/>
+    <meta name="keywords" content="{ifset $page_keywords}{$page_keywords}{/ifset}"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="../../www/styles/style.css?v={time()}" type="text/css"/>
+    <link rel="shortcut icon" href="www/favicon.ico" type="image/x-icon">
+    {include "styles.latte"}
+    {include "scripts.latte"}
 </head>
 
 <body>

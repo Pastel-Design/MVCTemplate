@@ -41,22 +41,6 @@ abstract class Controller
     public function __construct()
     {
         $this->latte = new Engine();
-        $this->latte->addFilter("convertCountry", function ($countryCode) {
-            switch ($countryCode) {
-                case "CZE":
-                    return "Česká republika";
-                case "SVK":
-                    return "Slovensko";
-                case "AUT":
-                    return "Rakousko";
-                case "DEU":
-                    return "Německo";
-                case "POL":
-                    return "Polsko";
-                default:
-                    return $countryCode;
-            }
-        });
     }
 
     /**
@@ -81,7 +65,6 @@ abstract class Controller
         }
     }
 
-
     /**
      * Sets value of $this->$view and sets css and js variables
      * @param string $view
@@ -91,7 +74,6 @@ abstract class Controller
     public function setView(string $view): void
     {
         $this->view = $view;
-
     }
 
     /**

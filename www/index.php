@@ -8,11 +8,13 @@ require("../vendor/autoload.php");
 
 /**
  * @param $class
+ * Class for autoload
  */
 function autoloadFunction($class)
 {
-    $classname="../" . preg_replace("/[\\ ]+/", "/", $class) . ".php";
+    $classname="./../" . str_replace("\\","/",$class) . ".php";
     if (is_readable($classname)) {
+        /** @noinspection PhpIncludeInspection */
         require($classname);
     }
 }
