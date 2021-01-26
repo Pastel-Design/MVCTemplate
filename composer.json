@@ -1,13 +1,13 @@
 {
-  "name": "",
+  "name": "pastel-design/mvc-template",
   "description": "",
   "license": "proprietary",
   "require": {
     "intervention/image": "2.*",
-    "swiftmailer/swiftmailer": "6.2.*",
-    "egulias/email-validator": "2.1.*",
-    "latte/latte": "v2.8.3",
-    "nette/forms": "v3.0.0",
+    "egulias/email-validator": "2.*",
+    "swiftmailer/swiftmailer": "6.*",
+    "latte/latte": "v2.*",
+    "nette/forms": "v3.*",
     "ext-pdo": "*",
     "ext-fileinfo": "*",
     "ext-json": "*",
