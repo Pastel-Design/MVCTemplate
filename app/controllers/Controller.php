@@ -8,6 +8,7 @@ use Transliterator;
 
 /**
  * Class Controller
+ *
  * @package app\controllers
  */
 abstract class Controller
@@ -26,7 +27,10 @@ abstract class Controller
      * @var array $head
      */
     protected array $head = ['page_title' => '', 'page_keywords' => '', 'page_description' => ''];
-
+    /**
+     * @var bool
+     */
+    protected bool $active;
     /**
      * @var string $controllerName
      */
@@ -38,14 +42,16 @@ abstract class Controller
      */
     private Engine $latte;
 
-    public function __construct()
+    public function __construct($active = true)
     {
         $this->latte = new Engine();
+        $this->active = $active;
     }
 
     /**
      * Definition of process function for inheritance
-     * @param array $params
+     *
+     * @param array      $params
      * Main url parameters
      * @param array|null $gets
      * Get parameters from url
@@ -54,6 +60,7 @@ abstract class Controller
 
     /**
      * Renders selected view
+     *
      * @return void
      */
     public function writeView(): void
@@ -64,11 +71,15 @@ abstract class Controller
             $this->latte->render($this->view, $params);
         }
     }
-
+    public final function isActive(){
+        return $this->active;
+    }
     /**
      * Sets value of $this->$view and sets css and js variables
+     *
      * @param string $view
      * View name
+     *
      * @return void
      */
     public function setView(string $view): void
@@ -78,6 +89,7 @@ abstract class Controller
 
     /**
      * View getter
+     *
      * @return string|null
      */
     public function getView(): ?string
@@ -87,7 +99,9 @@ abstract class Controller
 
     /**
      * Convert standard names to dash-based style
+     *
      * @param string $argument
+     *
      * @return string
      */
     public function basicToDash(string $argument): string

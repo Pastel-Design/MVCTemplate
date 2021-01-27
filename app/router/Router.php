@@ -51,8 +51,12 @@ final class Router
             $this->reroute('error/404');
         }
         $this->controller->controllerName = $controllerName;
-        $this->controller->process($parsedURL, $parsedGET);
-        $this->controller->writeView();
+        if ($this->controller->isActive()) {
+            $this->controller->process($parsedURL, $parsedGET);
+            $this->controller->writeView();
+        } else {
+            $this->reroute("default");
+        }
     }
 
     /**
