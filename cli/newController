@@ -1,0 +1,69 @@
+#!/usr/bin/env php
+<?php
+function dashToCamel(string $text)
+{
+    return str_replace(' ', '', ucwords(str_replace('-', ' ', $text)));
+}
+
+array_shift($argv);
+if (empty($argv)) {
+    echo "You must specify controller name!";
+    exit();
+}
+foreach ($argv as $arg) {
+    $controllerName = dashToCamel($arg);
+    echo "Creating " . $controllerName . "Controller.php";
+    if (is_readable("../app/controllers/" . $controllerName . "Controller.php")) {
+        echo "\nController with this name allready exists";
+        exit();
+    }
+    if (is_dir("../app/views/" . $controllerName)) {
+        echo "\nViews directory for this controller allready exists, delete it first";
+        exit();
+    }
+    $file =
+        '<?php
+	
+namespace app\controllers;
+
+/**
+ * Controller ' . $controllerName . 'Controller
+ *
+ * @package app\controllers
+ */
+class ' . $controllerName . 'Controller extends Controller
+{
+    public function __construct()
+    {
+        parent::__construct();
+    }
+
+    /**
+     * @param array      $params
+     * @param array|null $gets
+     *
+     * @return void
+     */
+    public function process(array $params, array $gets = null)
+    {
+        $this->head["page_title"] = "";
+        $this->head["page_keywords"] = "";
+        $this->head["page_description"] = "";
+        $this->setView("default");
+    }
+}
+';
+    $view =
+        '{extends "../@layout.latte"}
+{block content}
+
+{/block}
+';
+    $myfile = fopen("../app/controllers/" . $controllerName . "Controller.php", "w+");
+    fwrite($myfile, $file);
+    fclose($myfile);
+    mkdir("../app/views/" . $controllerName, 0700);
+    $myfile = fopen("../app/views/" . $controllerName . "/default.latte", "w+");
+    fwrite($myfile, $view);
+    fclose($myfile);
+}
