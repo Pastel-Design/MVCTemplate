@@ -20,39 +20,28 @@ final class Router
      * @var Controller $data
      */
     protected Controller $controller;
+    protected array $parameters;
+    protected array $query;
 
     public function process($params)
     {
-
-        $parsedParams = $this->parseURL($params[0]);
-        /**
-         * @var array $parsedGET
-         * @var array $parsedURL
-         */
-        extract($parsedParams);
-
-        if (empty($parsedURL[0])) {
-            array_unshift($parsedURL, "default");
-        }
-        try {
-            DbManager::connect(DbConfig::$host, DbConfig::$username, DbConfig::$pass, DbConfig::$database);
-        } catch (PDOException $exception) {
-            if ($parsedURL[0] != "error") {
-                $this->reroute("error/500");
-            }
-        }
-        $controllerName = $this->dashToCamel(array_shift($parsedURL));
-        $controllerClass = $controllerName . 'Controller';
-
-        if (file_exists('../app/controllers/' . $controllerClass . '.php')) {
-            $controllerClass = "\app\controllers\\" . $controllerClass;
+        /* URL Parsing */
+        $this->parseURL($params[0]);
+        /* Database connection tryout */
+        $this->connectDatabase();
+        /* Controller name init */
+        $controller = $this->dashToCamel(array_shift($this->parameters));
+        /* Controller class init */
+        if (file_exists('../app/controllers/' . $controller . 'Controller.php')) {
+            $controllerClass = "\app\controllers\\" . $controller . "Controller";
             $this->controller = new $controllerClass;
         } else {
             $this->reroute('error/404');
         }
-        $this->controller->controllerName = $controllerName;
+        /* Controller preparing*/
+        $this->controller->controllerName = $controller;
         if ($this->controller->isActive()) {
-            $this->controller->process($parsedURL, $parsedGET);
+            $this->controller->process($this->parameters, $this->query);
             $this->controller->writeView();
         } else {
             $this->reroute("default");
@@ -62,27 +51,31 @@ final class Router
     /**
      * @param string $url
      *
-     * @return false|string[]
+     * @return void
      */
-    private function parseURL(string $url)
+    private function parseURL(string $url): void
     {
         $url = parse_url($url);
         $parsedURL = ltrim($url["path"], "/");
         $parsedURL = trim($parsedURL);
         $parsedURL = explode("/", $parsedURL);
-        $return["parsedURL"] = array();
+        $parameters = array();
         foreach ($parsedURL as $parse) {
             if ($parse !== '') {
-                $return["parsedURL"][] = $parse;
+                $parameters[] = $parse;
             } else {
                 break;
             }
         }
-        $return["parsedGET"] = array();
-        if (isset($url["query"])) {
-            parse_str($url["query"],$return["parsedGET"]);
+        if (empty($parameters[0])) {
+            array_unshift($parameters, "default");
         }
-        return $return;
+        $this->setParameters($parameters);
+        $query = array();
+        if (isset($url["query"])) {
+            parse_str($url["query"], $query);
+        }
+        $this->setQuery($query);
     }
 
     /**
@@ -105,5 +98,35 @@ final class Router
         header("Location: /$url");
         header("Connection: close");
         exit;
+    }
+
+    /**
+     * @param array $parameters
+     */
+    public function setParameters(array $parameters): void
+    {
+        $this->parameters = $parameters;
+    }
+
+    /**
+     * @param array $query
+     */
+    public function setQuery(array $query): void
+    {
+        $this->query = $query;
+    }
+
+    /**
+     * @return void
+     */
+    private function connectDatabase(): void
+    {
+        try {
+            DbManager::connect(DbConfig::$host, DbConfig::$username, DbConfig::$pass, DbConfig::$database);
+        } catch (PDOException $exception) {
+            if ($this->parameters[0] != "error") {
+                $this->reroute("error/500");
+            }
+        }
     }
 }
